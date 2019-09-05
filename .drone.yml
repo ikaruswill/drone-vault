@@ -1,40 +1,33 @@
 ---
 kind: pipeline
 name: default
+type: docker
 
 platform:
   os: linux
-  arch: amd64
+  arch: arm
 
 workspace:
   base: /go
   path: src/github.com/drone/drone-vault
-
 steps:
 - name: build
   image: golang:1.10
   commands:
   - go get -u github.com/golang/dep/cmd/dep
   - dep ensure
-  - go test -v -cover ./...
-  - CGO_ENABLED=0 go build -o release/linux/amd64/drone-vault github.com/drone/drone-vault/cmd/drone-vault
+  - go build -v -a -tags netgo -o release/linux/arm/drone-vault github.com/drone/drone-vault/cmd/drone-vault
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
 
 - name: publish
   image: plugins/docker
   settings:
     auto_tag: true
-    dockerfile: docker/Dockerfile
+    dockerfile: docker/Dockerfile.linux.arm
     password:
-      $secret: docker_password
-    repo: drone/vault
+      from_secret: docker_password
+    repo: ikaruswill/drone-vault
     username:
-      $secret: docker_username
-
----
-kind: secret
-type: external
-data:
-  docker_password: "drone/docker#password"
-  docker_username: "drone/docker#username"
-
-...
+      from_secret: docker_username
