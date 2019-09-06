@@ -10,6 +10,7 @@ platform:
 workspace:
   base: /go
   path: src/github.com/drone/drone-vault
+
 steps:
 - name: build
   image: golang:1.10
@@ -24,10 +25,23 @@ steps:
 - name: publish
   image: plugins/docker
   settings:
+    repo: ikaruswill/drone-vault
     auto_tag: true
     dockerfile: docker/Dockerfile.linux.arm
-    password:
-      from_secret: docker_password
-    repo: ikaruswill/drone-vault
     username:
       from_secret: docker_username
+    password:
+      from_secret: docker_password
+
+---
+kind: secret
+name: docker_username
+get:
+  path: secret/docker
+  name: username
+---
+kind: secret
+name: docker_password
+get:
+  path: secret/docker
+  name: password
